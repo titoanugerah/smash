@@ -105,7 +105,14 @@
                         <li class="nav-item dropdown hidden-caret">
                             <a class="dropdown-toggle profile-pic" data-toggle="dropdown" href="#" aria-expanded="false">
                                 <div class="avatar-sm">
-                                    <img src="~/img/user.jpg" alt="..." class="avatar-img rounded-circle">
+                                    @if (!User.Identity.IsAuthenticated)
+                                    {
+                                        <img src="" alt="..." class="avatar-img rounded-circle">
+                                    }
+                                    else
+                                    {
+                                        <img src="~/img/user.jpg" alt="..." class="avatar-img rounded-circle">
+                                    }
                                 </div>
                             </a>
                             <ul class="dropdown-menu dropdown-user animated fadeIn">
