@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>Suscribe_Management_System_Hehe</RootNamespace>
+    <UserSecretsId>95493479-79e6-4db0-ae3c-0c5fdbd39dbd</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
