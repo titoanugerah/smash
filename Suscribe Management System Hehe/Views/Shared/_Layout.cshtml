@@ -27,18 +27,13 @@
     <link rel="stylesheet" href="~/template/atlantis/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="~/template/atlantis/assets/css/atlantis.min.css">
 
-    <!-- CSS Just for demo purpose, don't include it in your project -->
-    <link rel="stylesheet" href="~/template/atlantis/assets/css/demo.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.css">
-
 </head>
 <body>
     <div class="wrapper">
         <div class="main-header">
             <!-- Logo Header -->
             <div class="logo-header" data-background-color="blue">
-
-                <a href="" class="logo" style="color:white;">
+                <a asp-action="Index" asp-controller="Dashboard" class="logo" style="color:white;">
                     SMASH
                 </a>
                 <button class="navbar-toggler sidenav-toggler ml-auto" type="button" data-toggle="collapse" data-target="collapse" aria-expanded="false" aria-label="Toggle navigation">
@@ -53,10 +48,7 @@
                     </button>
                 </div>
             </div>
-            <!-- End Logo Header -->
-            <!-- Navbar Header -->
             <nav class="navbar navbar-header navbar-expand-lg" data-background-color="blue2">
-
                 <div class="container-fluid">
                     <div class="collapse" id="search-nav">
                         <div class="navbar-left navbar-form nav-search mr-md-3">
@@ -105,31 +97,56 @@
                         <li class="nav-item dropdown hidden-caret">
                             <a class="dropdown-toggle profile-pic" data-toggle="dropdown" href="#" aria-expanded="false">
                                 <div class="avatar-sm">
-                                    <img src="~/img/user.jpg" alt="..." class="avatar-img rounded-circle">
+                                    @if (User.Identity.IsAuthenticated)
+                                    {
+                                        <img src="@User.Claims.Where(x => x.Type == "Image").Select(x => new { x.Value }).FirstOrDefault().Value" alt="..." class="avatar-img rounded-circle">
+                                    }
+                                    else
+                                    {
+                                        <img src="~/img/user.jpg" alt="..." class="avatar-img rounded-circle">
+                                    }
                                 </div>
                             </a>
                             <ul class="dropdown-menu dropdown-user animated fadeIn">
                                 <div class="dropdown-user-scroll scrollbar-outer">
                                     <li>
                                         <div class="user-box">
+                                        @if (User.Identity.IsAuthenticated)
+                                        {
+                                            <div class="avatar-lg"><img src="@User.Claims.Where(x => x.Type == "Image").Select(x => new { x.Value }).FirstOrDefault().Value" alt="image profile" class="avatar-img rounded"></div>
+                                            <div class="u-text">
+                                                <h4>@User.Claims.Where(x => x.Type == "Name").Select(x => new { x.Value }).FirstOrDefault().Value</h4>
+                                                <p class="text-muted">@User.Claims.Where(x => x.Type == "Role").Select(x => new { x.Value }).FirstOrDefault().Value</p><a asp-action="Index" asp-controller="Account" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a>
+                                            </div>
+                                        }
+                                        else
+                                        {
                                             <div class="avatar-lg"><img src="~/img/user.jpg" alt="image profile" class="avatar-img rounded"></div>
                                             <div class="u-text">
-                                                @*<h4><?php echo $this->session->userdata('name'); ?></h4>
-                                                <p class="text-muted"><?php echo $this->session->userdata('email') ?></p><a href="<?php echo base_url('profile'); ?>" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a>*@
+                                                <h4>Belum Login</h4>
+                                                <p class="text-muted">Silahkan Login</p>
                                             </div>
-                                        </div>
+                                        }
+                                         </div>
                                     </li>
                                     <li>
                                         <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="">Keluar</a>
+                                        @if (User.Identity.IsAuthenticated)
+                                        {
+                                            <a class="dropdown-item" asp-action="Logout" asp-controller="Account">Logout</a>
+                                        }
+                                        else
+                                        {
+                                            <a class="dropdown-item" asp-action="Login" asp-controller="Account">Login</a>
+                                        }
                                     </li>
                                 </div>
                             </ul>
                         </li>
-                </div>
-            </nav>
+                    </div>
+                </nav>
             <!-- End Navbar -->
-        </div>
+            </div>
 
         <!-- Sidebar -->
         <div class="sidebar sidebar-style-2">
@@ -137,28 +154,36 @@
                 <div class="sidebar-content">
                     <div class="user">
                         <div class="avatar-sm float-left mr-2">
-                            <img src="~/img/user.jpg" alt="..." class="avatar-img rounded-circle">
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <img src="@User.Claims.Where(x => x.Type == "Image").Select(x => new { x.Value }).FirstOrDefault().Value" alt="..." class="avatar-img rounded-circle">
+                            }
+                            else
+                            {
+                                <img src="~/img/user.jpg" class="avatar-img rounded-circle">
+                            }
                         </div>
                         <div class="info">
                             <a data-toggle="collapse" href="#collapseExample" aria-expanded="true">
                                 <span>
-                                    @*<?php if(!$this->session->userdata('isLogin')){echo "Belum Login"; } else {echo $this->session->userdata('name');} ?>
-                                    <span class="user-level"><?php if(!$this->session->userdata('isLogin')){echo "Belum Login"; } else {echo $this->session->userdata('role');} ?></span>
-                                    <span class="caret"></span>*@
+                                    <b>@User.Claims.Where(x => x.Type == "Name").Select(x => x.Value).FirstOrDefault()</b>
+                                    <p>@User.Claims.Where(x => x.Type == "Email").Select(x=> x.Value).FirstOrDefault() </p>
                                 </span>
                             </a>
                             <div class="clearfix"></div>
 
                             <div class="collapse in" id="collapseExample">
                                 <ul class="nav">
-
+                                     
                                 </ul>
                             </div>
                         </div>
                     </div>
                     <ul class="nav nav-primary">
-
-@*                        <?php if($this->session->userdata('isLogin') && (file_exists('./application/views/shared/menu/'.$this->session->userdata('role').'.php'))){$this->load->view('shared/menu/'.$this->session->userdata('role'));} ?>*@
+                        @if (User.Identity.IsAuthenticated)
+                        { 
+                            <partial name="Menu/_@User.Claims.Where(x => x.Type == "Role").Select(x => x.Value).FirstOrDefault()" />
+                        }
                     </ul>
                 </div>
             </div>
@@ -183,7 +208,7 @@
                         </ul>
                     </nav>
                     <div class="copyright ml-auto">
-                        2020, made with <i class="fa fa-heart heart text-danger"></i> by <a href="https://www.themekita.com">ThemeKita</a>
+                        Copyright 2021
                     </div>
                 </div>
             </footer>
