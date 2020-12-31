@@ -27,60 +27,97 @@ namespace Suscribe_Management_System_Hehe.Controllers
             this._DBContext = DBContext;
         }
 
-        [Authorize]
-        public async Task<IActionResult> Index()
+        private string GetUserClaim(string type)
         {
-            int userId = int.Parse(User.Claims.Where(x => x.Type == "Id").Select(x => x.Value).FirstOrDefault());
-            ViewData["User"] = _DBContext.User
-                .Include(table => table.Role)
-                .Where(column => column.Id == userId)
-                .FirstOrDefaultAsync();
-            return View();
+            string userClaim = null;
+            try
+            {
+                if (type != "" && type != null)
+                {
+                    userClaim = User.Claims.Where(claim => claim.Type == type).Select(column => column.Value).FirstOrDefault();
+                }
+            }
+            catch (Exception error)
+            {
+                 _loggger.LogError(error.Message, "Account Controller - GetUserClaim");
+                throw;
+            }
+            return userClaim;
+        }
+
+        [Authorize]
+        public IActionResult Index()
+        {
+            try
+            {
+                int userId = int.Parse(GetUserClaim("Id"));
+                ViewData["User"] = _DBContext.User
+                    .Include(table => table.Role)
+                    .Where(column => column.Id == userId)
+                    .FirstOrDefaultAsync();
+                return View();
+            }
+            catch (Exception error)
+            {
+                _loggger.LogError(error.Message, "Account Controller - Index");
+                throw;
+            }
         }
 
         [AllowAnonymous]
         [Route("Login")]
         public async Task<IActionResult> Login()
         {
-          var properties = new AuthenticationProperties 
-          {
-              AllowRefresh = true,
-              IsPersistent = true,
-              ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30),
-              RedirectUri = Url.Action("Validate") 
-          };
-          return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+            try
+            {
+                var properties = new AuthenticationProperties
+                {
+                    AllowRefresh = true,
+                    IsPersistent = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30),
+                    RedirectUri = Url.Action("Validate")
+                };
+                return Challenge( properties, GoogleDefaults.AuthenticationScheme);
+            }
+            catch (Exception error)
+            {
+                _loggger.LogError(error, "Account Controller - Login");
+                throw;
+            }
         }
 
         [AllowAnonymous]
         [Route("Validate")]
         public async Task<IActionResult> Validate()
         {
-            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            List<ViewModels.UserClaim> userClaim = result.Principal
-                .Identities.FirstOrDefault().Claims
-                .Where(claim => claim.Type == "email" || claim.Type == "name" || claim.Type == "picture")
-                .Select(claim => new ViewModels.UserClaim{
-                    Type = claim.Type,
-                    Value = claim.Value
-                })
-                .ToList();
-            ViewModels.UserIdentity userIdentity = new ViewModels.UserIdentity();
-            userIdentity.Email = userClaim.Where(claim => claim.Type == "email").Select(claim => claim.Value).FirstOrDefault();
-            userIdentity.Picture= userClaim.Where(claim => claim.Type == "picture").Select(claim => claim.Value).FirstOrDefault();
-            userIdentity.Name = userClaim.Where(claim => claim.Type == "name").Select(claim => claim.Value).FirstOrDefault();
-            var checkUser = _DBContext.User
-                .Any(user => user.Email == userIdentity.Email);
-            if (checkUser)
+            try
             {
-                var user = _DBContext.User
-                    .Include(table => table.Role)
-                    .Where(user => user.Email == userIdentity.Email)
-                    .FirstOrDefault();
-                user.Image = userIdentity.Picture;
-                user.Name = userIdentity.Name;
-                await _DBContext.SaveChangesAsync();
-                var claims = new List<Claim>
+                var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                List<ViewModels.UserClaim> userClaim = result.Principal
+                    .Identities.FirstOrDefault().Claims
+                    .Where(claim => claim.Type == "email" || claim.Type == "name" || claim.Type == "picture")
+                    .Select(claim => new ViewModels.UserClaim
+                    {
+                        Type = claim.Type,
+                        Value = claim.Value
+                    })
+                    .ToList();
+                ViewModels.UserIdentity userIdentity = new ViewModels.UserIdentity();
+                userIdentity.Email = userClaim.Where(claim => claim.Type == "email").Select(claim => claim.Value).FirstOrDefault();
+                userIdentity.Picture = userClaim.Where(claim => claim.Type == "picture").Select(claim => claim.Value).FirstOrDefault();
+                userIdentity.Name = userClaim.Where(claim => claim.Type == "name").Select(claim => claim.Value).FirstOrDefault();
+                var checkUser = _DBContext.User
+                    .Any(user => user.Email == userIdentity.Email);
+                if (checkUser)
+                {
+                    var user = _DBContext.User
+                        .Include(table => table.Role)
+                        .Where(user => user.Email == userIdentity.Email)
+                        .FirstOrDefault();
+                    user.Image = userIdentity.Picture;
+                    user.Name = userIdentity.Name;
+                    await _DBContext.SaveChangesAsync();
+                    var claims = new List<Claim>
                 {
                     new Claim("Id", user.Id.ToString()),
                     new Claim("Name", user.Name),
@@ -89,25 +126,42 @@ namespace Suscribe_Management_System_Hehe.Controllers
                     new Claim("Image", user.Image),
                     new Claim("RoleId", user.RoleId.ToString())
                 };
-                var claimsIdentity = new ClaimsIdentity(
-                claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var authProperties = new AuthenticationProperties();
-                await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(claimsIdentity),
-                    authProperties);
-                return RedirectToAction("Index", "Home");
+                    var claimsIdentity = new ClaimsIdentity(
+                    claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    var authProperties = new AuthenticationProperties();
+                    await HttpContext.SignInAsync(
+                        CookieAuthenticationDefaults.AuthenticationScheme,
+                        new ClaimsPrincipal(claimsIdentity),
+                        authProperties);
+                    return RedirectToAction("Index", "Home");
+                }
+                return Json("User Not Registered");
             }
-            return Json("User Not Registered");
+            catch (Exception error)
+            {
+                _loggger.LogError(error, "Account Controller - Validate ");
+                throw;
+            }
+
         }
 
         [Authorize]
         [Route("Logout")]
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync();
-            return RedirectToAction("Index", "Home");
+            try
+            {
+                await HttpContext.SignOutAsync();
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception error)
+            {
+                _loggger.LogError(error, "Account Controller - Logout");
+                throw;
+            }
         }
+
+
 
     }
 }
