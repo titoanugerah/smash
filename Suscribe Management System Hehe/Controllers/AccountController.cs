@@ -20,7 +20,7 @@ namespace Suscribe_Management_System_Hehe.Controllers
         private readonly ILogger _loggger;
         private readonly IConfiguration _configuration;
         private readonly DataAccess.DatabaseContext _DBContext;
-        public AccountController(ILogger logger, IConfiguration configuration, DataAccess.DatabaseContext DBContext)
+        public AccountController(ILogger<AccountController> logger, IConfiguration configuration, DataAccess.DatabaseContext DBContext)
         {
             this._loggger = logger;
             this._configuration = configuration;
@@ -36,8 +36,14 @@ namespace Suscribe_Management_System_Hehe.Controllers
         [Route("Login")]
         public async Task<IActionResult> Login()
         {
-           var properties = new AuthenticationProperties { RedirectUri = Url.Action("Validate") };
-           return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+          var properties = new AuthenticationProperties 
+          {
+              AllowRefresh = true,
+              IsPersistent = true,
+              ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30),
+              RedirectUri = Url.Action("Validate") 
+          };
+          return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
 
         [AllowAnonymous]
@@ -70,20 +76,15 @@ namespace Suscribe_Management_System_Hehe.Controllers
                 await _DBContext.SaveChangesAsync();
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, user.Name),
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.Role, user.Role.Name),
+                    new Claim("Name", user.Name),
+                    new Claim("Email", user.Email),
+                    new Claim("Role", user.Role.Name),
                     new Claim("Image", user.Image),
                     new Claim("RoleId", user.RoleId.ToString())
                 };
                 var claimsIdentity = new ClaimsIdentity(
                 claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var authProperties = new AuthenticationProperties
-                {
-                    AllowRefresh = true,
-                    ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(10),
-                    IsPersistent = true,
-                };
+                var authProperties = new AuthenticationProperties();
                 await HttpContext.SignInAsync(
                     CookieAuthenticationDefaults.AuthenticationScheme,
                     new ClaimsPrincipal(claimsIdentity),
