@@ -23,18 +23,30 @@ namespace Suscribe_Management_System_Hehe.Controllers
         [AllowAnonymous]
         public IActionResult Index()
         {
-            return View();
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
+            try
+            {
+                return View();
+            }
+            catch (Exception error)
+            {
+                _logger.LogError(error, "Home Controller - Index");
+                throw;
+            }
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            try
+            {
+
+                return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            }
+            catch (Exception error)
+            {
+                _logger.LogError(error, "Home Controller - Error");
+                throw;
+            }
         }
     }
 }
