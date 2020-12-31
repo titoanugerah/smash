@@ -166,8 +166,16 @@
                         <div class="info">
                             <a data-toggle="collapse" href="#collapseExample" aria-expanded="true">
                                 <span>
-                                    <b>@User.Claims.Where(x => x.Type == "Name").Select(x => x.Value).FirstOrDefault()</b>
-                                    <p>@User.Claims.Where(x => x.Type == "Email").Select(x=> x.Value).FirstOrDefault() </p>
+                                    @if (User.Identity.IsAuthenticated)
+                                    {
+                                        <b>@User.Claims.Where(x => x.Type == "Name").Select(x => x.Value).FirstOrDefault()</b>
+                                        <p>@User.Claims.Where(x => x.Type == "Email").Select(x => x.Value).FirstOrDefault() </p>
+                                    }
+                                    else
+                                    {
+                                        <b>Not Logged In</b>
+                                        <a asp-action="Login" asp-controller="Account">Please login here</a>
+                                    }
                                 </span>
                             </a>
                             <div class="clearfix"></div>
