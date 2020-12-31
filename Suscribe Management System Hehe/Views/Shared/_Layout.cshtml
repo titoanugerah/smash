@@ -1,4 +1,12 @@
-﻿<!DOCTYPE html>
+﻿@functions{
+    public string GetUserClaim(string type)
+    {
+        return User.Claims.Where(x => x.Type == type).Select(x => x.Value).FirstOrDefault();
+    }
+}
+
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -99,7 +107,7 @@
                                 <div class="avatar-sm">
                                     @if (User.Identity.IsAuthenticated)
                                     {
-                                        <img src="@User.Claims.Where(x => x.Type == "Image").Select(x => new { x.Value }).FirstOrDefault().Value" alt="..." class="avatar-img rounded-circle">
+                                        <img src="@GetUserClaim("Image")" alt="..." class="avatar-img rounded-circle">
                                     }
                                     else
                                     {
@@ -111,23 +119,22 @@
                                 <div class="dropdown-user-scroll scrollbar-outer">
                                     <li>
                                         <div class="user-box">
-                                        @if (User.Identity.IsAuthenticated)
-                                        {
-                                            <div class="avatar-lg"><img src="@User.Claims.Where(x => x.Type == "Image").Select(x => new { x.Value }).FirstOrDefault().Value" alt="image profile" class="avatar-img rounded"></div>
-                                            <div class="u-text">
-                                                <h4>@User.Claims.Where(x => x.Type == "Name").Select(x => new { x.Value }).FirstOrDefault().Value</h4>
-                                                <p class="text-muted">@User.Claims.Where(x => x.Type == "Role").Select(x => new { x.Value }).FirstOrDefault().Value</p><a asp-action="Index" asp-controller="Account" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a>
-                                            </div>
-                                        }
-                                        else
-                                        {
-                                            <div class="avatar-lg"><img src="~/img/user.jpg" alt="image profile" class="avatar-img rounded"></div>
-                                            <div class="u-text">
-                                                <h4>Belum Login</h4>
-                                                <p class="text-muted">Silahkan Login</p>
-                                            </div>
-                                        }
-                                         </div>
+                                            @if (User.Identity.IsAuthenticated)
+                                            {
+                                                <div class="avatar-lg"><img src="@GetUserClaim("Image")" alt="image profile" class="avatar-img rounded"></div>
+                                                <div class="u-text">
+                                                    <h4>@GetUserClaim("Name")</h4>
+                                                    <p class="text-muted">@GetUserClaim("Role")</p><a asp-action="Index" asp-controller="Account" class="btn btn-xs btn-secondary btn-sm">Profile</a>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="avatar-lg"><img src="~/img/user.jpg" alt="image profile" class="avatar-img rounded"></div>
+                                                <div class="u-text">
+                                                    <h4>Not Logged In</h4>
+                                                </div>
+                                            }
+                                        </div>
                                     </li>
                                     <li>
                                         <div class="dropdown-divider"></div>
@@ -143,10 +150,10 @@
                                 </div>
                             </ul>
                         </li>
-                    </div>
-                </nav>
+                </div>
+            </nav>
             <!-- End Navbar -->
-            </div>
+        </div>
 
         <!-- Sidebar -->
         <div class="sidebar sidebar-style-2">
@@ -156,7 +163,7 @@
                         <div class="avatar-sm float-left mr-2">
                             @if (User.Identity.IsAuthenticated)
                             {
-                                <img src="@User.Claims.Where(x => x.Type == "Image").Select(x => new { x.Value }).FirstOrDefault().Value" alt="..." class="avatar-img rounded-circle">
+                                <img src="@GetUserClaim("Image")" alt="..." class="avatar-img rounded-circle">
                             }
                             else
                             {
@@ -168,8 +175,8 @@
                                 <span>
                                     @if (User.Identity.IsAuthenticated)
                                     {
-                                        <b>@User.Claims.Where(x => x.Type == "Name").Select(x => x.Value).FirstOrDefault()</b>
-                                        <p>@User.Claims.Where(x => x.Type == "Email").Select(x => x.Value).FirstOrDefault() </p>
+                                        <b>@GetUserClaim("Name")</b>
+                                        <p>@GetUserClaim("Email") </p>
                                     }
                                     else
                                     {
@@ -182,14 +189,13 @@
 
                             <div class="collapse in" id="collapseExample">
                                 <ul class="nav">
-                                     
                                 </ul>
                             </div>
                         </div>
                     </div>
                     <ul class="nav nav-primary">
                         @if (User.Identity.IsAuthenticated)
-                        { 
+                        {
                             <partial name="Menu/_@User.Claims.Where(x => x.Type == "Role").Select(x => x.Value).FirstOrDefault()" />
                         }
                     </ul>

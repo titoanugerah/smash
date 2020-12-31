@@ -27,10 +27,16 @@ namespace Suscribe_Management_System_Hehe.Controllers
             this._DBContext = DBContext;
         }
 
-        //public IActionResult Index()
-        //{
-        //    return View();
-        //}
+        [Authorize]
+        public async Task<IActionResult> Index()
+        {
+            int userId = int.Parse(User.Claims.Where(x => x.Type == "Id").Select(x => x.Value).FirstOrDefault());
+            ViewData["User"] = _DBContext.User
+                .Include(table => table.Role)
+                .Where(column => column.Id == userId)
+                .FirstOrDefaultAsync();
+            return View();
+        }
 
         [AllowAnonymous]
         [Route("Login")]
@@ -76,6 +82,7 @@ namespace Suscribe_Management_System_Hehe.Controllers
                 await _DBContext.SaveChangesAsync();
                 var claims = new List<Claim>
                 {
+                    new Claim("Id", user.Id.ToString()),
                     new Claim("Name", user.Name),
                     new Claim("Email", user.Email),
                     new Claim("Role", user.Role.Name),
