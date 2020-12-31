@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Suscribe_Management_System_Hehe.Controllers
 {
-    [AllowAnonymous, Route("Account")]
+    [Route("Account")]
     public class AccountController : Controller
     {
         private readonly ILogger _loggger;
@@ -27,24 +27,26 @@ namespace Suscribe_Management_System_Hehe.Controllers
             this._DBContext = DBContext;
         }
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+        //public IActionResult Index()
+        //{
+        //    return View();
+        //}
 
+        [AllowAnonymous]
         [Route("Login")]
         public async Task<IActionResult> Login()
         {
-            var properties = new AuthenticationProperties 
-            {
-                AllowRefresh = true,
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30),
-                RedirectUri = Url.Action("Validate") 
-            };
-            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+          var properties = new AuthenticationProperties 
+          {
+              AllowRefresh = true,
+              IsPersistent = true,
+              ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30),
+              RedirectUri = Url.Action("Validate") 
+          };
+          return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
 
+        [AllowAnonymous]
         [Route("Validate")]
         public async Task<IActionResult> Validate()
         {
@@ -72,21 +74,17 @@ namespace Suscribe_Management_System_Hehe.Controllers
                 user.Image = userIdentity.Picture;
                 user.Name = userIdentity.Name;
                 await _DBContext.SaveChangesAsync();
-
                 var claims = new List<Claim>
                 {
                     new Claim("Name", user.Name),
                     new Claim("Email", user.Email),
                     new Claim("Role", user.Role.Name),
                     new Claim("Image", user.Image),
-                    new Claim("RoleId", user.Role.Id.ToString())
+                    new Claim("RoleId", user.RoleId.ToString())
                 };
-
                 var claimsIdentity = new ClaimsIdentity(
                 claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
                 var authProperties = new AuthenticationProperties();
-                
                 await HttpContext.SignInAsync(
                     CookieAuthenticationDefaults.AuthenticationScheme,
                     new ClaimsPrincipal(claimsIdentity),
